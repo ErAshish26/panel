@@ -1,1 +1,482 @@
+I'll create a comprehensive admin panel for managing transactions and requests. Here's a full-featured dashboard using HTML, CSS, JavaScript, and Bootstrap:
 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Transaction & Request Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.875rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: var(--primary-color);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        .topbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);
+            color: white;
+            text-decoration: none;
+        }
+
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+            border: none;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #e2e8f0;
+        }
+
+        .status-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+
+        .btn-action {
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve { background: var(--success-color); color: white; }
+        .btn-reject { background: var(--danger-color); color: white; }
+        .btn-view { background: var(--primary-color); color: white; }
+
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--secondary-color);
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+
+        .pagination .page-link {
+            border-radius: 8px;
+            margin: 0 2px;
+            border: none;
+            color: var(--primary-color);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-layer-group"></i>
+                <span class="sidebar-text">AdminPanel</span>
+            </div>
+        </div>
+        <nav class="mt-4">
+            <a href="#" class="nav-link active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+            <a href="#" class="nav-link" data-section="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span class="sidebar-text">Transactions</span>
+            </a>
+            <a href="#" class="nav-link" data-section="requests">
+                <i class="fas fa-clipboard-list"></i>
+                <span class="sidebar-text">Requests</span>
+            </a>
+            <a href="#" class="nav-link" data-section="users">
+                <i class="fas fa-users"></i>
+                <span class="sidebar-text">Users</span>
+            </a>
+            <a href="#" class="nav-link" data-section="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span class="sidebar-text">Reports</span>
+            </a>
+            <a href="#" class="nav-link" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span class="sidebar-text">Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="toggle-sidebar" id="toggleSidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="mb-0 fw-bold text-dark" id="pageTitle">Dashboard</h4>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="form-control" placeholder="Search transactions, requests..." id="globalSearch">
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Admin</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="container-fluid px-4 py-4">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section">
+                <!-- Stats Cards -->
+                <div class="row mb-5">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stats-card h-100 text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Total Transactions</h6>
+                                        <h2 class="mb-0" id="totalTransactions">2,847</h2>
+                                    </div>
+                                    <i class="fas fa-exchange-alt fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card bg-gradient text-white h-100" style="background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Pending Requests</h6>
+                                        <h2 class="mb-0" id="pendingRequests">156</h2>
+                                    </div>
+                                    <i class="fas fa-clipboard-list fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card bg-gradient text-white h-100" style="background: linear-gradient(135deg, var(--warning-color) 0%, #fbbf24 100%);">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Total Revenue</h6>
+                                        <h2 class="mb-0">$<span id="totalRevenue">124,567</span></h2>
+                                    </div>
+                                    <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card bg-gradient text-white h-100" style="background: linear-gradient(135deg, var(--danger-color) 0%, #f87171 100%);">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Active Users</h6>
+                                        <h2 class="mb-0" id="activeUsers">1,234</h2>
+                                    </div>
+                                    <i class="fas fa-users fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Recent Transactions</h5>
+                                <a href="#" class="btn btn-primary btn-sm">View All</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTransactions">
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div id="transactions-section" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>Transactions Management</h4>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" id="transactionFilter">
+                            <option>All Status</option>
+                            <option>Pending</option>
+                            <option>Approved</option>
+                            <option>Rejected</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" id="exportTransactions">
+                            <i class="fas fa-download me-1"></i>Export
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllTransactions"></th>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+                <nav aria-label="Transactions pagination">
+                    <ul class="pagination justify-content-center mt-4" id="transactionsPagination">
+                        <!-- Dynamic pagination -->
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Requests Section -->
+            <div id="requests-section" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>Request Management</h4>
+                    <button class="btn btn-success btn-sm" id="bulkApprove">
+                        <i class="fas fa-check me-1"></i>Bulk Approve
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="requestsTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllRequests"></th>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Request Type</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users-section" style="display: none;">
+                <h4>Users Management</h4>
+                <p>Users section content goes here...</p>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports-section" style="display: none;">
+                <h4>Reports & Analytics</h4>
+                <p>Reports section content goes here...</p>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" style="display: none;">
+                <h4>Settings</h4>
+                <p>Settings content goes here...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Sample data
+        const transactionsData = [
+            { id: '#TXN001', user: 'John Doe', amount: '$1,250.00', type: 'Deposit', status: 'approved', date: '2024-01-15' },
+            { id: '#TXN002', user: 'Jane Smith', amount: '$850.00', type: 'Withdrawal', status: 'pending', date: '2024-01-14' },
+            { id: '#TXN003', user: 'Mike Johnson', amount: '$2,100.00', type: 'Transfer', status: 'approved', date: '2024-01-13' },
+            { id: '#TXN004', user: 'Sarah Wilson', amount: '$450.00', type: 'Deposit', status: 'rejected', date: '2024-01-12' },
+        ];
+
+        const requestsData = [
+            { id: '#REQ001', user: 'John Doe', type: 'Account Upgrade', details: 'Premium Plan', status: 'pending', date: '2024-01-15' },
+            { id: '#REQ002', user: 'Jane Smith', type: 'Withdrawal Request', details: '$500 to Bank', status: 'approved', date: '2024-01-14' },
+            { id: '#REQ003', user: 'Mike Johnson
